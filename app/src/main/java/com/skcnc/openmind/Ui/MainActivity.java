@@ -1,15 +1,13 @@
 package com.skcnc.openmind.Ui;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
-import android.databinding.DataBinderMapper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.provider.Settings;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 
 import com.skcnc.openmind.R;
 import com.skcnc.openmind.Util.U;
@@ -22,7 +20,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends Activity {
 
@@ -53,8 +50,9 @@ public class MainActivity extends Activity {
                 }
             }
         }
-        showRecomm();
     }
+
+
 
     public void process() throws Exception {
         AsyncTask.execute(new Runnable() {
@@ -69,19 +67,22 @@ public class MainActivity extends Activity {
                     while((json = br.readLine())!=null){
                         json_Response.append(json + "\n");
                     }
+
                     U.getUinstance().log(json_Response.toString());
                     U.getUinstance().log(connection.getResponseCode()+"");
+
+                    if (connection.getResponseCode() == 200) showRecomm();              //요청 성공시
                 }catch (Exception e){
                     U.getUinstance().log("JSON RESPONSE ERROR");
                 }finally {
-                    showRecomm();
+
                     connection.disconnect();
                 }
             }
         });
     }
 
-    //json형태 sp에 저장
+    //json형태
     public void showRecomm(){
         try {
             ArrayList<String> values = new ArrayList<>();
@@ -93,7 +94,7 @@ public class MainActivity extends Activity {
                 values.add(jsonArray2.getString(i));
             }
 
-            U.getUinstance().saveSPSet(this, TAG_LIKES, values );   //SP에 추천 튜토리얼 저장
+            //U.getUinstance().saveSPSet(this, TAG_LIKES, values );   //SP에 추천 튜토리얼 저장
 
             U.getUinstance().log(U.getUinstance().getTutorials(this, TAG_LIKES).toString());
         }catch (Exception e){

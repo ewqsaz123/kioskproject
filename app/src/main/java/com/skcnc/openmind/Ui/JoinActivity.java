@@ -1,6 +1,9 @@
 package com.skcnc.openmind.Ui;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -17,6 +20,7 @@ import com.skcnc.openmind.List.RecyclerJoinAdapter;
 import com.skcnc.openmind.List.RecyclerJoinItem;
 import com.skcnc.openmind.R;
 import com.skcnc.openmind.Sqlite.MyDBHandler;
+import com.skcnc.openmind.Sqlite.TableBrand;
 import com.skcnc.openmind.Util.U;
 
 import org.json.JSONArray;
@@ -28,6 +32,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class JoinActivity extends Activity {
 
     URL postURL = null; HttpURLConnection connection = null;
@@ -36,7 +42,7 @@ public class JoinActivity extends Activity {
     private RecyclerView.LayoutManager layoutManager;
     private ArrayList<RecyclerJoinItem> mItems = new ArrayList<>();
 
-    MyDBHandler myDBHandler;
+    MyDBHandler myDBHandler = new MyDBHandler(this, "kiosk.db", null, 1);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +51,6 @@ public class JoinActivity extends Activity {
 
         //db 초기화 1번만
         if(!U.getUinstance().getSPBoolean(this, "db")) setDataBase();
-
 
         setRecyclerView();
 
@@ -65,7 +70,7 @@ public class JoinActivity extends Activity {
                 else if(radio_m.isChecked()) text_gender = "male";
 
                 /*** ArrayList로 ***/
-                String[] tids = {"1","23","21","12","53","33"};
+                ArrayList<String> tids = U.getUinstance().getBrandList();
 
                 if(isinternetCon()){
                     U.getUinstance().toast(getApplicationContext(), "인터넷을 연결해주세요.");
@@ -82,7 +87,6 @@ public class JoinActivity extends Activity {
             }
         });
         //건너뛰기 클릭
-
     }
 
     private void setRecyclerView(){
@@ -96,23 +100,19 @@ public class JoinActivity extends Activity {
             setData();
     }
 
+    //리사이클러뷰에 데이터 리스트 넣기
     private void setData(){
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
-        mItems.add(new RecyclerJoinItem("맥도날드", "1.png"));
+        String s = "d.png";
+        for(int i=1; i<=10; i++){
+            TableBrand tb = myDBHandler.getBrand(i);
+            mItems.add(new RecyclerJoinItem(tb.getName(), tb.getImage()));
+        }
         adapter.notifyDataSetChanged();
-
     }
 
     //DB생성및 초기화
     private void setDataBase(){
         try {
-            myDBHandler = new MyDBHandler(this, "kiosk.db", null, 1);
             myDBHandler.insert();
 
             U.getUinstance().savaSPBoolean(this, "db", true);
@@ -125,8 +125,9 @@ public class JoinActivity extends Activity {
     }
 
     //post 요청
-    public void process(String text_edit_age, String text_gender, String[] tids) throws IOException {
-        final String url_str = "http://13.125.254.66/api/users";
+    public void process(String text_edit_age, String text_gender, ArrayList<String> tids) throws IOException {
+        //final String url_str = "http://13.125.254.66/api/users";  //실제 url
+        final String url_str = "http://www.naver.com";             //테스트 url
         final String json = convertToJson(Integer.parseInt(text_edit_age), text_gender, tids);
         AsyncTask.execute(new Runnable() {
             @Override
@@ -146,6 +147,11 @@ public class JoinActivity extends Activity {
                     os.flush();
 
                     U.getUinstance().log(connection.getResponseCode()+"");
+
+                    //성공 시에 MainActivity로 이동
+                    if(connection.getResponseCode() == 200){
+                        goToMain();
+                    }
                 }catch (Exception e){
                     U.getUinstance().log("INTERNET ERROR");
                     e.printStackTrace();
@@ -156,20 +162,26 @@ public class JoinActivity extends Activity {
         });
     }
 
-    public String convertToJson(int text_edit_age, String text_gender, String[] tids){
+    public void goToMain(){
+        startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        finish();
+    }
+
+    public String convertToJson(int text_edit_age, String text_gender, ArrayList<String> tids){
         String json = "";
         String uuid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID); //기기ID
-
+        //String uuid = "afdn3r";
         try{
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("uuid", uuid);
             jsonObject.put("age", text_edit_age);
             jsonObject.put("gender", text_gender);
 
-            JSONObject tid_json = new JSONObject();
             JSONArray jsonArray = new JSONArray();
+
             for(String s: tids){
-                jsonArray.put(s);
+                U.getUinstance().log(myDBHandler.getTid(s));
+                jsonArray.put(myDBHandler.getTid(s));
             }
             jsonObject.put("likes", jsonArray);
 

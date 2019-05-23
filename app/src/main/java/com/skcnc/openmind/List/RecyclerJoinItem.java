@@ -4,11 +4,12 @@ public class RecyclerJoinItem {
 
     public String brand;
     public String logo;
-    public Boolean check = false;
+    public Boolean check;
 
     public RecyclerJoinItem(String brand, String logo) {
         this.brand = brand;
         this.logo = logo;
+        this.check = false;
     }
 
     public String getBrand() {
@@ -27,13 +28,11 @@ public class RecyclerJoinItem {
         this.logo = logo;
     }
 
-    public void setSelected(Boolean check) {
-        this.check = check;
-    }
-
-    public boolean isChecked(){
+    public Boolean isChecked() {
         return check;
     }
 
-
+    public void setSelected(Boolean check) {
+        this.check = check;
+    }
 }

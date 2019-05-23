@@ -20,11 +20,11 @@ public class StartActivity extends Activity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                //startApp();
+                startApp();
             }
         }, 2000);
 
-        Button b1 = (Button) findViewById(R.id.go_join);
+        /*Button b1 = (Button) findViewById(R.id.go_join);
         b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -46,7 +46,7 @@ public class StartActivity extends Activity {
             public void onClick(View v) {
                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
             }
-        });
+        });*/
     }
 
     public void startApp(){

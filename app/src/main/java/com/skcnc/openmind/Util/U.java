@@ -18,6 +18,7 @@ public class U {
     static String SAVE_TAG = "USER";   //SharedPreferences 태그
 
     //sp ("uuid", "age", "gender", "db")
+    private static ArrayList<String> brandList = new ArrayList<>();
 
     public String getUser(Context context, String key){
         return context.getSharedPreferences(key, 0).getString(key, "");
@@ -74,5 +75,17 @@ public class U {
     //토스트 날리기
     public void toast(Context context, String msg){
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    public void addBrand(String str){
+        brandList.add(str);
+    }
+
+    public void removeBrand(String str){
+        brandList.remove(str);
+    }
+
+    public ArrayList<String> getBrandList(){
+        return brandList;
     }
 }
