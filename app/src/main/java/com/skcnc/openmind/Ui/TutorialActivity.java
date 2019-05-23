@@ -19,6 +19,7 @@ import java.net.URL;
 
 public class TutorialActivity extends Activity {
 
+    //String url_str = "https://kimoa-ac3c0.firebaseapp.com/simulator";
     String url_str = "http://192.168.0.78:3000/simulator";
     URL url = null;
     HttpURLConnection connection = null;
@@ -28,17 +29,21 @@ public class TutorialActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tutorial);
 
+        /******* tid 데이터 인텐트 받아오기 *******/
         String uuid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID); //기기ID
         String tid = "11";
 
         //가입여부 확인 후 url추가
-
         url_str += "?uuid="+ uuid +"&tid="+tid;
         U.getUinstance().log(url_str);
-        /*if(U.getUinstance().checkSharedPreferences(this)){
+
+        /**   회원가입 되었는지 확인
+            if(U.getUinstance().checkSP(this)){
             url_str += "?uuid="+ uuid +"&tid="+tid;
             U.getUinstance().log(url_str);
-        }*/
+        }
+         **/
+
         if(isinternetCon()){
             U.getUinstance().toast(getApplicationContext(), "인터넷을 연결해주세요.");
         }else{
@@ -50,7 +55,6 @@ public class TutorialActivity extends Activity {
             webView.loadUrl(url_str);
         }
     }
-
 
     private boolean isinternetCon(){
         ConnectivityManager cManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);

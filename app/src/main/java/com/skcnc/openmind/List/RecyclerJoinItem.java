@@ -1,0 +1,39 @@
+package com.skcnc.openmind.List;
+
+public class RecyclerJoinItem {
+
+    public String brand;
+    public String logo;
+    public Boolean check = false;
+
+    public RecyclerJoinItem(String brand, String logo) {
+        this.brand = brand;
+        this.logo = logo;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
+    }
+
+    public void setSelected(Boolean check) {
+        this.check = check;
+    }
+
+    public boolean isChecked(){
+        return check;
+    }
+
+
+}

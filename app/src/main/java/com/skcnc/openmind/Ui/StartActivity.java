@@ -51,7 +51,7 @@ public class StartActivity extends Activity {
 
     public void startApp(){
         //회원가입 여부 확인
-        if(U.getUinstance().checkSharedPreferences(this)){
+        if(U.getUinstance().checkSP(this)){
             U.getUinstance().log("MainActivity opened");
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         }else{
@@ -60,7 +60,4 @@ public class StartActivity extends Activity {
         }
         finish();
     }
-
-
-
 }
