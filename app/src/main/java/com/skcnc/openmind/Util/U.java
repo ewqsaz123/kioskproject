@@ -17,11 +17,11 @@ public class U {
 
     static String SAVE_TAG = "USER";   //SharedPreferences 태그
 
-    //sp ("uuid", "age", "gender", "db")
+    //sp ("join", "db")
     private static ArrayList<String> brandList = new ArrayList<>();
 
     public String getUser(Context context, String key){
-        return context.getSharedPreferences(key, 0).getString(key, "");
+        return context.getSharedPreferences(key, 0).getString(key, "null");
     }
 
     //SP likes 가져오기
@@ -36,12 +36,13 @@ public class U {
         Set<String> set = new HashSet<>();
         set.addAll(values);
         editor.putStringSet(key, set);
-        editor.commit();
+        editor.apply();
     }
 
     //SP 저장
     public void saveSPUser(Context context, String key, String value){
         SharedPreferences.Editor editor = context.getSharedPreferences(SAVE_TAG, 0 ).edit();
+        //editor.clear();
         editor.putString(key, value);
         editor.commit();
     }

@@ -14,7 +14,7 @@ public class StartActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_start);
+        setContentView(R.layout.activity_splash);
 
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
@@ -51,7 +51,7 @@ public class StartActivity extends Activity {
 
     public void startApp(){
         //회원가입 여부 확인
-        if(U.getUinstance().checkSP(this)){
+        if(U.getUinstance().getSPBoolean(this, "join")){
             U.getUinstance().log("MainActivity opened");
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
         }else{

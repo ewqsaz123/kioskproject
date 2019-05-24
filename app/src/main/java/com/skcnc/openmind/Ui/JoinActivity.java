@@ -1,40 +1,38 @@
 package com.skcnc.openmind.Ui;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RadioButton;
 
-import com.skcnc.openmind.List.RecyclerJoinAdapter;
+import com.skcnc.openmind.Fragment.FragmentAge;
+import com.skcnc.openmind.Fragment.FragmentGender;
+import com.skcnc.openmind.Fragment.FragmentInterested;
 import com.skcnc.openmind.List.RecyclerJoinItem;
 import com.skcnc.openmind.R;
 import com.skcnc.openmind.Sqlite.MyDBHandler;
-import com.skcnc.openmind.Sqlite.TableBrand;
 import com.skcnc.openmind.Util.U;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
-import javax.net.ssl.HttpsURLConnection;
 
-public class JoinActivity extends Activity {
+public class JoinActivity extends AppCompatActivity {
 
     URL postURL = null; HttpURLConnection connection = null;
     private RecyclerView.Adapter adapter;
@@ -44,21 +42,25 @@ public class JoinActivity extends Activity {
 
     MyDBHandler myDBHandler = new MyDBHandler(this, "kiosk.db", null, 1);
 
+    Fragment gender = new FragmentGender();
+    Fragment age = new FragmentAge();
+    Fragment interested = new FragmentInterested();
+
+    String fragdata_age, fragdata_gender;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join);
 
+        setFragmentInit();
+
         //db 초기화 1번만
         if(!U.getUinstance().getSPBoolean(this, "db")) setDataBase();
-
+/**
         setRecyclerView();
 
         //확인버튼 클릭
-        Button btn_join = (Button) findViewById(R.id.btn_join);
-        final EditText edit_age = (EditText) findViewById(R.id.edit_age);
-        final RadioButton radio_f = (RadioButton) findViewById(R.id.radio_f);
-        final RadioButton radio_m = (RadioButton) findViewById(R.id.radio_m);
 
         btn_join.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,7 +71,6 @@ public class JoinActivity extends Activity {
                 if(radio_f.isChecked()) text_gender = "female";
                 else if(radio_m.isChecked()) text_gender = "male";
 
-                /*** ArrayList로 ***/
                 ArrayList<String> tids = U.getUinstance().getBrandList();
 
                 if(isinternetCon()){
@@ -87,35 +88,98 @@ public class JoinActivity extends Activity {
             }
         });
         //건너뛰기 클릭
+ **/
     }
 
-    private void setRecyclerView(){
-            recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-            recyclerView.setHasFixedSize(true);
-            layoutManager = new GridLayoutManager(this, 2);
-            //layoutManager = new LinearLayoutManager(getApplicationContext());
-            recyclerView.setLayoutManager(layoutManager);
-            adapter = new RecyclerJoinAdapter(mItems);
-            recyclerView.setAdapter(adapter);
-            setData();
+    //프래그먼트 초기화(gender)
+    public void setFragmentInit(){
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.add(R.id.container_join, gender);
+        ft.commit();
     }
 
-    //리사이클러뷰에 데이터 리스트 넣기
-    private void setData(){
-        String s = "d.png";
-        for(int i=1; i<=10; i++){
-            TableBrand tb = myDBHandler.getBrand(i);
-            mItems.add(new RecyclerJoinItem(tb.getName(), tb.getImage()));
+    //프래그먼트 교체
+    public void fragmentSwitch(int pos, String value){
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+
+        switch (pos){
+            case 2:                         //gender -> age
+                fragdata_gender = value;
+                U.getUinstance().log(fragdata_gender);
+                ft.replace(R.id.container_join, age);
+                ft.commit();
+                break;
+            case 3:                         //age -> interested
+                if(value.equals("skip")) setSkip();
+                else{
+                    fragdata_age = value;
+                    U.getUinstance().log(fragdata_age);
+                    ft.replace(R.id.container_join, interested);
+                    ft.commit();
+                }
+                break;
+            case 4:                         //interested -> submit / skip
+                if(value.equals("skip")) setSkip();
+                else{
+                    setSubmit();
+                }
         }
-        adapter.notifyDataSetChanged();
+    }
+    public void setSkip(){
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+            }
+        }).start();
+
+        //건너뛰기//
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+    }
+
+    //확인버튼 클릭시
+    public void setSubmit(){
+        ArrayList<String> tids = U.getUinstance().getBrandList();
+        String uuid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID); //기기ID
+        String age = fragdata_age;
+        String gender = fragdata_gender;
+
+        if(isinternetCon()){
+            U.getUinstance().toast(getApplicationContext(), "인터넷을 연결해주세요.");
+        }else{
+            try {
+                process(fragdata_age, fragdata_gender, tids);      //가입api 요청
+            }catch (Exception e){
+                U.getUinstance().log("EEEEEE");
+            }
+        }
+
+        //SP 저장
+       U.getUinstance().saveSPUser(this, "uuid", uuid);
+            U.getUinstance().savaSPBoolean(this, "join", true);
+
+        //U.getUinstance().saveSPUser(getApplicationContext(), "age", age);
+        //U.getUinstance().saveSPUser(getApplicationContext(), "gender", gender);
+
+        //U.getUinstance().log("age="+U.getUinstance().getUser(getApplicationContext(), "age"));
+        //U.getUinstance().log("gender="+U.getUinstance().getUser(getApplicationContext(), "gender"));
+
+        U.getUinstance().log("tids="+tids.toString());
+
+        U.getUinstance().log("사용자 정보 등록 완료");
     }
 
     //DB생성및 초기화
     private void setDataBase(){
         try {
+            U.getUinstance().log("디비 생성 여부1"+U.getUinstance().getSPBoolean(this, "db"));
             myDBHandler.insert();
 
             U.getUinstance().savaSPBoolean(this, "db", true);
+            U.getUinstance().log("디비 생성 여부2"+U.getUinstance().getSPBoolean(this, "db"));
         }catch (Exception e){
             U.getUinstance().log("DBHandler ERROR");
             e.printStackTrace();
@@ -126,8 +190,8 @@ public class JoinActivity extends Activity {
 
     //post 요청
     public void process(String text_edit_age, String text_gender, ArrayList<String> tids) throws IOException {
-        //final String url_str = "http://13.125.254.66/api/users";  //실제 url
-        final String url_str = "http://www.naver.com";             //테스트 url
+        final String url_str = "http://13.125.254.66/api/users";  //실제 url
+        //final String url_str = "http://www.naver.com";             //테스트 url
         final String json = convertToJson(Integer.parseInt(text_edit_age), text_gender, tids);
         AsyncTask.execute(new Runnable() {
             @Override
@@ -151,6 +215,8 @@ public class JoinActivity extends Activity {
                     //성공 시에 MainActivity로 이동
                     if(connection.getResponseCode() == 200){
                         goToMain();
+                    }else if(connection.getResponseCode() == 302){
+                        goToMain();
                     }
                 }catch (Exception e){
                     U.getUinstance().log("INTERNET ERROR");
@@ -168,8 +234,8 @@ public class JoinActivity extends Activity {
     }
 
     public String convertToJson(int text_edit_age, String text_gender, ArrayList<String> tids){
-        String json = "";
         String uuid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID); //기기ID
+        String json = "";
         //String uuid = "afdn3r";
         try{
             JSONObject jsonObject = new JSONObject();
@@ -200,4 +266,5 @@ public class JoinActivity extends Activity {
 
         return !mobile.isConnected() && !wifi.isConnected();
     }
+
 }
