@@ -7,17 +7,12 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.provider.Settings;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-import com.skcnc.openmind.List.RecyclerCategoryAdapter;
-import com.skcnc.openmind.List.RecyclerCategoryItem;
-import com.skcnc.openmind.List.RecyclerJoinAdapter;
 import com.skcnc.openmind.List.RecyclerRecommAdapter;
 import com.skcnc.openmind.List.RecyclerRecommItem;
 import com.skcnc.openmind.R;
@@ -38,16 +33,14 @@ public class MainActivity extends Activity {
     String url_str = "http://13.125.254.66/api/users?uuid=";          //리얼 주소
     //String url_str = "http://www.naver.com";                            //가라
     String uuid = "null"; //기기ID
-    String TAG_LIKES = "likes";
+    String TAG_LIKES = "recommends";
     StringBuffer json_Response = new StringBuffer();            //응답 데이터
     URL url = null; HttpURLConnection connection = null;
 
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
     RecyclerRecommAdapter adapter;
-    RecyclerCategoryAdapter adapter_c;
     ArrayList<RecyclerRecommItem> mItems = new ArrayList<>();
-    ArrayList<RecyclerCategoryItem> cItems = new ArrayList<>();
 
     MyDBHandler myDBHandler = new MyDBHandler(this, "kiosk.db", null, 1);
 
@@ -63,15 +56,14 @@ public class MainActivity extends Activity {
         U.getUinstance().log("in Main uuid="+uuid);
 
         /** 서버 연동시 수정 **/
-        //json_Response.append("[{\"likes\":[\"1.0\",\"3.0\",\"5.0\",\"2.0\",\"8.0\",\"6.0\"]}]");
-
+        //json_Response.append("[{\"likes\":[\"11.0\",\"34.0\",\"5.0\",\"27.0\",\"8.0\",\"6.0\"]}]");
+        //json_Response.append("[{\"likes\":[\"10.0\",\"12.0\",\"3.0\",\"29.0\",\"37.0\"],\"recommends\":[],\"_id\":\"5ce82bf4038db03f3035bd8d\",\"uuid\":\"b2b276b0289e24e3\",\"age\":85,\"gender\":\"female\",\"__v\":0}]");
         if(!uuid.equals("null")){    //회원가입 했으면 추천 뿌려줌
             if(isinternetCon()){
                 U.getUinstance().toast(getApplicationContext(), "인터넷을 연결해주세요.");
             }else{
                 try {
-                    //process();
-                    showRecomm();
+                    process();
                 }catch (Exception e){
                     U.getUinstance().log("EEEEEE");
                 }
@@ -94,8 +86,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void process() throws Exception {
-        AsyncTask.execute(new Runnable() {
+    public void process() throws Exception{
+        new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -107,27 +99,41 @@ public class MainActivity extends Activity {
                     while((json = br.readLine())!=null){
                         json_Response.append(json + "\n");
                     }
-                    U.getUinstance().log(json_Response.toString());
+                    U.getUinstance().log("json_response="+json_Response.toString());
                     U.getUinstance().log(connection.getResponseCode()+"");
 
-                    if (connection.getResponseCode() == 200) showRecomm();              //요청 성공시
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run()  {
+                            try {
+                                if (connection.getResponseCode() == 200) showRecomm();              //요청 성공시
+                            }catch (Exception e){
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
+
                 }catch (Exception e){
                     U.getUinstance().log("JSON RESPONSE ERROR");
                 }finally {
                     connection.disconnect();
                 }
             }
-        });
+        }).start();
+
     }
 
     //json형태
     public void showRecomm(){
         try {
             ArrayList<String> values = new ArrayList<>();
-            U.getUinstance().log("LOGLOG==="+json_Response.toString());
+            U.getUinstance().log("JSONDATA==="+json_Response.toString());
             JSONArray jsonArray = new JSONArray(json_Response.toString());
             JSONObject jsonObject = jsonArray.getJSONObject(0);
+
             JSONArray jsonArray2 = jsonObject.getJSONArray(TAG_LIKES);
+
             for(int i=0; i<jsonArray2.length(); i++){
                 values.add(jsonArray2.getString(i));
             }
@@ -140,51 +146,47 @@ public class MainActivity extends Activity {
 
     //리사이클러뷰 설정
     public void setRecommView(ArrayList<String> values){
-        recyclerView = (RecyclerView) findViewById(R.id.main);
-        recyclerView.setHasFixedSize(true);
-        layoutManager = new LinearLayoutManager(getApplicationContext());
-        ((LinearLayoutManager) layoutManager).setOrientation(LinearLayoutManager.HORIZONTAL);
-        //layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(layoutManager);
-        adapter = new RecyclerRecommAdapter(mItems);
-        recyclerView.setAdapter(adapter);
+        try {
+            recyclerView = (RecyclerView) findViewById(R.id.main);
+            U.getUinstance().log("setRecommView ERROR1");
+            recyclerView.setHasFixedSize(true);
+            U.getUinstance().log("setRecommView ERROR2");
 
-        setData(values);
+            layoutManager = new LinearLayoutManager(getApplicationContext());
+            U.getUinstance().log("setRecommView ERROR3");
+            ((LinearLayoutManager) layoutManager).setOrientation(LinearLayoutManager.HORIZONTAL);
+            U.getUinstance().log("setRecommView ERROR4");
+            //layoutManager = new LinearLayoutManager(getApplicationContext());
+            recyclerView.setLayoutManager(layoutManager);
+            U.getUinstance().log("setRecommView ERROR5");
+            adapter = new RecyclerRecommAdapter(getApplicationContext(), mItems);
+            U.getUinstance().log("setRecommView ERROR6");
+            recyclerView.setAdapter(adapter);
+            U.getUinstance().log("setRecommView ERROR7");
+            setData(values);
+        }catch (Exception e){
+            e.printStackTrace();
+            U.getUinstance().log("setRecommView ERROR");
+        }
+
+
     }
 
     //리사이클러뷰에 데이터 추가
     public void setData(ArrayList<String> values){
-        for(String s: values){
-            double tid = Double.parseDouble(s);
-            TableBrand tb = myDBHandler.getBrand((int)tid);
-            mItems.add(new RecyclerRecommItem(tb.getName(), tb.getImage()));
+        try{
+            for(String s: values){
+                double tid = Double.parseDouble(s);
+                TableBrand tb = myDBHandler.getBrand((int)tid);
+                mItems.add(new RecyclerRecommItem(tb.getName(), tb.getImage()));
+            }
+            adapter.notifyDataSetChanged();
+        }catch (Exception e){
+            U.getUinstance().log("setData() ERROR");
         }
 
-        adapter.notifyDataSetChanged();
+
     }
-
-    //카테고리 뷰
-    /*public void setCategoryView(){
-
-        recyclerView = (RecyclerView) findViewById(R.id.category);
-        recyclerView.setHasFixedSize(true);
-        layoutManager = new GridLayoutManager(this, 2);
-        recyclerView.setLayoutManager(layoutManager);
-        adapter_c = new RecyclerCategoryAdapter(cItems);
-
-        cItems.add(new RecyclerCategoryItem("패스트푸드", R.drawable.fastfood));
-        cItems.add(new RecyclerCategoryItem("교통", R.drawable.transport));
-        cItems.add(new RecyclerCategoryItem("병원", R.drawable.hospital));
-        cItems.add(new RecyclerCategoryItem("대형마트", R.drawable.mall));
-        cItems.add(new RecyclerCategoryItem("커피전문점", R.drawable.cafe));
-
-
-        cItems.add(new RecyclerCategoryItem("공공기관", R.drawable.office));
-
-
-
-        recyclerView.setAdapter(adapter_c);
-    }*/
 
     private boolean isinternetCon(){
         ConnectivityManager cManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);

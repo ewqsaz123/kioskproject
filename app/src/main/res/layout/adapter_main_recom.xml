@@ -14,15 +14,21 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="6dp">
+        <LinearLayout
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="88dp">
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="88dp"
+                android:layout_height="wrap_content"
+                android:scaleType="fitXY"
+                android:adjustViewBounds="true"
+                android:src="@drawable/img_1" />
 
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="88dp"
-            android:layout_height="88dp"
-            android:scaleType="fitXY"
-            android:scaleX="1.2"
-            android:scaleY="1.2"
-            android:src="@drawable/img_1" />
+        </LinearLayout>
+
 
         <TextView
             android:id="@+id/nameTextView"

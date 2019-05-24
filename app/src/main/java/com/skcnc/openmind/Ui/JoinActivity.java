@@ -246,8 +246,7 @@ public class JoinActivity extends AppCompatActivity {
             JSONArray jsonArray = new JSONArray();
 
             for(String s: tids){
-                U.getUinstance().log(myDBHandler.getTid(s));
-                jsonArray.put(myDBHandler.getTid(s));
+                jsonArray.put(myDBHandler.getTid(s)+".0");
             }
             jsonObject.put("likes", jsonArray);
 

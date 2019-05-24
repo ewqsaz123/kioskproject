@@ -60,11 +60,10 @@
                         android:id="@+id/main"
                         android:layout_width="match_parent"
                         android:layout_height="180dp"
-                        android:orientation="horizontal"
                         android:paddingTop="16dp"
                         android:paddingBottom="16dp"
                         app:layout_constraintLeft_toLeftOf="@+id/text_recomm"
-                        app:layout_constraintTop_toBottomOf="@+id/text_recomm"></android.support.v7.widget.RecyclerView>
+                        app:layout_constraintTop_toBottomOf="@+id/text_recomm"/>
 
                     <LinearLayout
                         android:id="@+id/alert"
