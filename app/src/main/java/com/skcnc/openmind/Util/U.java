@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
+
 public class U {
     private static final U uinstance = new U();
 
@@ -76,6 +78,19 @@ public class U {
     //토스트 날리기
     public void toast(Context context, String msg){
         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    //성공 타입 프로그레스
+    public void showPopup2(Context context, String title, String msg,
+                           String cName, SweetAlertDialog.OnSweetClickListener cEvent
+    ){
+        new SweetAlertDialog(context, SweetAlertDialog.SUCCESS_TYPE)
+                .setTitleText(title)
+                .setContentText(msg)
+                .setConfirmText(cName)
+                .setConfirmClickListener(cEvent)
+                .show();
+
     }
 
     public void addBrand(String str){

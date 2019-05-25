@@ -1,10 +1,13 @@
 package com.skcnc.openmind.Ui;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,6 +15,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 
 import com.skcnc.openmind.List.RecyclerRecommAdapter;
 import com.skcnc.openmind.List.RecyclerRecommItem;
@@ -29,6 +33,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
+
 public class MainActivity extends Activity {
     String url_str = "http://13.125.254.66/api/users?uuid=";          //리얼 주소
     //String url_str = "http://www.naver.com";                            //가라
@@ -36,11 +42,14 @@ public class MainActivity extends Activity {
     String TAG_LIKES = "recommends";
     StringBuffer json_Response = new StringBuffer();            //응답 데이터
     URL url = null; HttpURLConnection connection = null;
+    int response_code;      //응답코드
 
     RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
     RecyclerRecommAdapter adapter;
     ArrayList<RecyclerRecommItem> mItems = new ArrayList<>();
+    ProgressDialog progressDialog;
+
 
     MyDBHandler myDBHandler = new MyDBHandler(this, "kiosk.db", null, 1);
 
@@ -50,19 +59,18 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main_new);
         //회원가입 여부 확인
         if(U.getUinstance().getSPBoolean(this, "join")){
-            uuid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID); //기기ID
+            //uuid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID); //기기ID
+            uuid = "uuid0003";
         }
-
         U.getUinstance().log("in Main uuid="+uuid);
 
         /** 서버 연동시 수정 **/
-        //json_Response.append("[{\"likes\":[\"11.0\",\"34.0\",\"5.0\",\"27.0\",\"8.0\",\"6.0\"]}]");
-        //json_Response.append("[{\"likes\":[\"10.0\",\"12.0\",\"3.0\",\"29.0\",\"37.0\"],\"recommends\":[],\"_id\":\"5ce82bf4038db03f3035bd8d\",\"uuid\":\"b2b276b0289e24e3\",\"age\":85,\"gender\":\"female\",\"__v\":0}]");
         if(!uuid.equals("null")){    //회원가입 했으면 추천 뿌려줌
             if(isinternetCon()){
                 U.getUinstance().toast(getApplicationContext(), "인터넷을 연결해주세요.");
             }else{
                 try {
+                    progressDialog = ProgressDialog.show(this, "튜토리얼 추천중", "조금만 기다려주세요.",true,false);
                     process();
                 }catch (Exception e){
                     U.getUinstance().log("EEEEEE");
@@ -87,6 +95,7 @@ public class MainActivity extends Activity {
     }
 
     public void process() throws Exception{
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -102,7 +111,11 @@ public class MainActivity extends Activity {
                     U.getUinstance().log("json_response="+json_Response.toString());
                     U.getUinstance().log(connection.getResponseCode()+"");
 
-                    runOnUiThread(new Runnable() {
+                    Thread.sleep(2000);
+
+                    response_code = connection.getResponseCode();
+                    handler.sendEmptyMessage(0);
+                    /*runOnUiThread(new Runnable() {
                         @Override
                         public void run()  {
                             try {
@@ -111,8 +124,7 @@ public class MainActivity extends Activity {
                                 e.printStackTrace();
                             }
                         }
-                    });
-
+                    });*/
 
                 }catch (Exception e){
                     U.getUinstance().log("JSON RESPONSE ERROR");
@@ -123,6 +135,14 @@ public class MainActivity extends Activity {
         }).start();
 
     }
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            progressDialog.dismiss();
+            showRecomm();
+        }
+    };
 
     //json형태
     public void showRecomm(){
@@ -168,17 +188,25 @@ public class MainActivity extends Activity {
             e.printStackTrace();
             U.getUinstance().log("setRecommView ERROR");
         }
-
-
     }
 
     //리사이클러뷰에 데이터 추가
     public void setData(ArrayList<String> values){
         try{
-            for(String s: values){
-                double tid = Double.parseDouble(s);
+            for(int i=0; i<values.size(); i++){
+                double tid = 0.0;
+                if(i==2){
+                    tid = 11.0;
+                }else{
+                    tid = Double.parseDouble(values.get(i));
+                }
+
                 TableBrand tb = myDBHandler.getBrand((int)tid);
                 mItems.add(new RecyclerRecommItem(tb.getName(), tb.getImage()));
+            }
+            for(String s: values){
+                double tid = Double.parseDouble(s);
+
             }
             adapter.notifyDataSetChanged();
         }catch (Exception e){

@@ -57,38 +57,6 @@ public class JoinActivity extends AppCompatActivity {
 
         //db 초기화 1번만
         if(!U.getUinstance().getSPBoolean(this, "db")) setDataBase();
-/**
-        setRecyclerView();
-
-        //확인버튼 클릭
-
-        btn_join.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                String text_edit_age = edit_age.getText().toString();
-                String text_gender = "";
-                if(radio_f.isChecked()) text_gender = "female";
-                else if(radio_m.isChecked()) text_gender = "male";
-
-                ArrayList<String> tids = U.getUinstance().getBrandList();
-
-                if(isinternetCon()){
-                    U.getUinstance().toast(getApplicationContext(), "인터넷을 연결해주세요.");
-                }else{
-                    try {
-                        process(text_edit_age, text_gender, tids);      //가입api 요청
-                    }catch (Exception e){
-                        U.getUinstance().log("EEEEEE");
-                    }
-                }
-                U.getUinstance().saveSPUser(getApplicationContext(), "age", text_edit_age);
-                U.getUinstance().saveSPUser(getApplicationContext(), "gender", text_gender);
-                //U.getUinstance().saveSPSet(getApplicationContext(), "tutorials", );
-            }
-        });
-        //건너뛰기 클릭
- **/
     }
 
     //프래그먼트 초기화(gender)
@@ -158,14 +126,8 @@ public class JoinActivity extends AppCompatActivity {
         }
 
         //SP 저장
-       U.getUinstance().saveSPUser(this, "uuid", uuid);
-            U.getUinstance().savaSPBoolean(this, "join", true);
-
-        //U.getUinstance().saveSPUser(getApplicationContext(), "age", age);
-        //U.getUinstance().saveSPUser(getApplicationContext(), "gender", gender);
-
-        //U.getUinstance().log("age="+U.getUinstance().getUser(getApplicationContext(), "age"));
-        //U.getUinstance().log("gender="+U.getUinstance().getUser(getApplicationContext(), "gender"));
+        U.getUinstance().saveSPUser(this, "uuid", uuid);
+        U.getUinstance().savaSPBoolean(this, "join", true);
 
         U.getUinstance().log("tids="+tids.toString());
 

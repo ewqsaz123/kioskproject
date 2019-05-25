@@ -20,7 +20,7 @@ import java.net.URL;
 public class TutorialActivity extends Activity {
 
     //String url_str = "https://kimoa-ac3c0.firebaseapp.com/simulator";
-    String url_str = "http://192.168.0.78:3000/simulator";
+    String url_str = "http://172.30.49.17:3000/simulator";  //로컬 주소
     URL url = null;
     HttpURLConnection connection = null;
 
